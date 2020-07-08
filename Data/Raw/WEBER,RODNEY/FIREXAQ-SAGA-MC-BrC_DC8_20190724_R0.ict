@@ -1,0 +1,57 @@
+56, 1001
+Weber, Rodney
+Georgia Institute of Technology
+Water soluble brown carbon measured with mist chamber-LWCC
+FIREXAQ
+1, 1
+2019, 07, 24, 2020, 03, 16
+0
+Time_Start, seconds_past_midnight, Time_Start, seconds_past_midnight
+24
+1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+-9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999, -9999
+Time_Stop, seconds_past_midnight, Time_Stop, seconds_past_midnight
+Time_Mid, seconds_past_midnight, Time_Mid, seconds_past_midnight
+WSAbs300, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 300 nm
+WSAbs320, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 320 nm
+WSAbs340, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 340 nm
+WSAbs360, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 360 nm
+WSAbs380, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 380 nm
+WSAbs400, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 400 nm
+WSAbs420, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 420 nm
+WSAbs440, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 440 nm
+WSAbs460, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 460 nm
+WSAbs480, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 480 nm
+WSAbs500, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 500 nm
+WSAbs520, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 520 nm
+WSAbs540, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 540 nm
+WSAbs560, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 560 nm
+WSAbs580, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 580 nm
+WSAbs600, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 600 nm
+WSAbs620, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 620 nm
+WSAbs640, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 640 nm
+WSAbs660, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 660 nm
+WSAbs680, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 680 nm
+WSAbs700, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 700 nm
+WSAbs365, Mm-1, AerOpt_AbsorptionBrC_InSitu_UVtoRed_None_Bulk_STP, Water Soluble Brown Carbon absorption at 365 nm
+0
+18
+PI_CONTACT_INFO: rweber@eas.gatech.edu
+PLATFORM: NASA DC-8 aircraft
+LOCATION: Aircraft location is given by the navigational file
+ASSOCIATED_DATA: N/A
+INSTRUMENT_INFO: UNH Mist Chamber, WPI LWCC, Ocean Optics USB4000 spectrometer
+DATA_INFO: Samples collected by mist chamber were injected through 0.22 pore size syringe filter and then a 2.5 m path length LWCC, and light absorption was measured by Ocean Optics USB4000 spectrometer. Absorption from 300 to 700 nm were recorded. Absorption of pure solvent was subtracted from the sample. Raw absorption data were processed by the equation Abs=Raw*(Volume of liquid in the mist chamber)/(Volume of air collected at STP)/(Optical Path Length, 2.5m here)*ln(10). Data reported here were averaged over 20 nm wavelength intervals. i.e. absorption at 400 nm were average by absorption data between 390 nm to 410 nm. All data have been blank corrected by averaging all blank filter in this mission (2-3 blank filters per flight). Data are reported under STP, which is T=273K & p=1013 mb. When using the data, the absorption had better to corrected by higher wavelength, ie Abs700 for baseline drift. UNCERTAINTY: Data may have smearing issues. If we do not account for smearing or blank, the uncertainty is ~5%
+UNCERTAINTY: Data may have smearing issues. If we do not account for smearing or blank, the uncertainty is ~5%. The data was not available for 07/24 due to instrument problem.
+ULOD_FLAG: -7777
+ULOD_VALUE: N/A
+LLOD_FLAG: -8888
+LLOD_VALUE: N/A
+DM_CONTACT_INFO: lhzeng@gatech.edu
+PROJECT_INFO: FIREX-AQ, 2019
+STIPULATIONS_ON_USE: Use of these data require prior ok from PI.
+OTHER_COMMENTS: N/A
+REVISION: R0
+RA: Preliminary Data.  For in-field use only.
+Time_Start, Time_Stop, Time_Mid, WSAbs300, WSAbs320, WSAbs340, WSAbs360, WSAbs380, WSAbs400, WSAbs420, WSAbs440, WSAbs460, WSAbs480, WSAbs500, WSAbs520, WSAbs540, WSAbs560, WSAbs580, WSAbs600, WSAbs620, WSAbs640, WSAbs660, WSAbs680, WSAbs700, WSAbs365
+77070,77220,77145,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999,-9999
