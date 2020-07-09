@@ -3,14 +3,18 @@ import os
 import matplotlib.pyplot as ppl
 import cartopy
 import cartopy.crs as ccrs
+from tkinter import filedialog as fd
 
 """This file contains methods for cleaning and processing .ict and .csv files 
-for data analysis and input"""
+for data analysis and input, as well as plotting flight paths"""
+
+# TODO: Streamline data input of large quantity of files as well as flight plotting
+# TODO: Move main to other file
 
 # creates a dictionary of data from a file
 # TODO: Include no data values in dict
-def readFile(filePath):
-    with open(filePath, newline="") as file:
+def readFile(fileIn):
+    with open(fileIn, newline="") as file:
         while True:
             title = file.readline()
             # check if we have reached the data
@@ -30,32 +34,60 @@ def readFile(filePath):
 
 
 # takes dict data, isolates and cleans lat/long, and plots flight path
-# currently only works for a single file dict, can change params to take
-# multiple dicts/data to plot multiple flights
 
-# TODO: take noDatVals from file in readFile
-def plotFlightMap(data):
+def plotFlightMap(dataList):
 
-    noDataVals = []
+    # values indicating no data
+    noDataVals = [-9999, -8888]
 
-    # converts list to numpy array
-    latsArray = np.asarray(data["Latitude"], dtype=float)
-    longsArray = np.asarray(data["Longitude"], dtype=float)
+    # meta list of lats/longs of different flights
+    lats = []
+    longs = []
 
-    # replaces no data vals with nan for clean plot
-    for i,j in enumerate(latsArray):
-        if j in noDataVals:
-            latsArray[i] = np.nan
+    # creates nan list of flight locations for a single data dict at a time
+    for data in dataList:
+        # converts list to numpy array
+        latsArray = np.asarray(data["Latitude"], dtype=float)
+        longsArray = np.asarray(data["Longitude"], dtype=float)
 
-    for i,j in enumerate(longsArray):
-        if j in noDataVals:
-            longsArray[i] = np.nan
+        # replaces no data vals with nan for clean plot
+        for i, j in enumerate(latsArray):
+            if j in noDataVals:
+                latsArray[i] = np.nan
 
+        for i, j in enumerate(longsArray):
+            if j in noDataVals:
+                longsArray[i] = np.nan
+
+        # add to meta list
+        lats.append(latsArray)
+        longs.append(longsArray)
+
+    # plot size and map type (easiest map to implement, no need for excessive accuracy)
     ppl.figure(figsize=(12,7))
     ax = ppl.axes(projection=ccrs.PlateCarree())
-    ax.plot(longsArray, latsArray)
+
+    # plot individual flights on the same graph
+    for i, j in enumerate(lats):
+        ax.plot(longs[i], lats[i])
+
     ax.gridlines(draw_labels=True)
     ax.coastlines()
     ax.set_xmargin(0.75)
     ax.set_ymargin(1)
     ppl.show()
+
+
+def main():
+    dataPath = fd.askdirectory()
+    dataList = os.listdir(dataPath)
+
+    subData = []
+
+    for x in range(10):
+        subData.append(readFile(dataPath + '/' + dataList[x]))
+
+    plotFlightMap(subData)
+
+if __name__ == '__main__':
+    main()
