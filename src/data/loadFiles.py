@@ -29,6 +29,7 @@ def loadAuth(filePath):
             print("Error", data, "has datatype " + type(fileInfo))
         else:
             dfTemp = pd.DataFrame.from_dict(fileInfo)
+            dfTemp = dfTemp.astype(float)
             readPD = readPD.append(dfTemp, ignore_index=True)
 
     return readPD
