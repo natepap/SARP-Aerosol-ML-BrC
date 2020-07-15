@@ -1,22 +1,19 @@
 import numpy as np
 import os
 import matplotlib.pyplot as ppl
-import matplotlib.ticker as mticker
 import cartopy.crs as ccrs
-from cartopy.mpl.ticker import (LongitudeFormatter, LatitudeFormatter)
 from tkinter import filedialog as fd
 
 """
 This file contains methods for cleaning and processing .ict and .csv files 
 for data analysis and input, as well as plotting flight paths
 """
-# TODO: Streamline data input of large quantity of files as well as flight plotting
 # TODO: Move main to other file
 
 
 # creates a dictionary of data from a file
-# TODO: Include no data values in dict
-def readFile(fileIn, colHeaders = []):
+def readFile(fileIn):
+    lineNo = 0
     try:
         with open(fileIn, newline="") as file:
             notFoundTitle = True
@@ -34,21 +31,17 @@ def readFile(fileIn, colHeaders = []):
                 if len(titleList) > 1:
                     notFoundTitle = False
 
-            # if we have already found the column headers for an author
-            # we should ensure that they are the same for all files from
-            # that author
-            if colHeaders != []:
-                title = colHeaders
-            else:
-                title = title.strip().split(",")
-
+            title = title.strip().split(",")
+            for i,t in enumerate(title):
+                title[i]=t.strip()
             fileData = {}
             for i in title:
                 fileData[i] = []
             for line in file:
+                lineNo += 1
                 line = line.strip().split(",")
                 for i, j in enumerate(title):
-                    fileData[j].append(line[i])
+                    fileData[j].append(line[i].strip())
         return fileData
     except OSError as err:
         print("Error opening file:", fileIn, err)
@@ -121,5 +114,5 @@ def main():
     # plot list of flights together
     plotFlightMap(subData)
 
-#if __name__ == '__main__':
-#    main()
+if __name__ == '__main__':
+    main()
