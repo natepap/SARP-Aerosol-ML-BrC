@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import os
-import csv
 from src.data.dataProcess import readFile
 """
 Loads raw data and processes data into pandas dataframes
@@ -11,7 +10,6 @@ Saves to Data/Cleaned
 rootDir = 'D:/SARP/SARP-Aerosol-ML-BrC/Data/'
 rawPath = rootDir + 'Raw/SAGAMERGE/'
 cleanPath = rootDir + 'Cleaned/'
-processPath = rootDir + 'Processed/'
 
 def loadAuth(filePath):
     rawList = os.listdir(filePath)
