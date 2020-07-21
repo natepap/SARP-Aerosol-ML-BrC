@@ -8,7 +8,6 @@ from tkinter import filedialog as fd
 This file contains methods for cleaning and processing .ict and .csv files 
 for data analysis and input, as well as plotting flight paths
 """
-# TODO: Move main to other file
 
 
 # creates a dictionary of data from a file
