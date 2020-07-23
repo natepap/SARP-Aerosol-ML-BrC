@@ -4,25 +4,25 @@ import matplotlib.pyplot as ppl
 import cartopy
 import cartopy.crs as ccrs
 """
-This is a practice program to read and clean data from an .ict file, convert it into a single .csv file
+This is a practice program to read and clean old from an .ict file, convert it into a single .csv file
 and plot flight paths
 """
 
-# keep this updated/modular for new data
+# keep this updated/modular for new old
 dataPath = "../Data/Raw/YANG,MELISSA/"
 dataList = os.listdir(dataPath)
 
-# list of values that indicate no data
+# list of values that indicate no old
 # TODO: learn this from file
 noDataVals = [-9999, -8888]
 
-# creates a dictionary of data from a file
+# creates a dictionary of old from a file
 def readFile(fileName):
     with open(dataPath + fileName, newline="") as file:
         while True:
             title = file.readline()
 
-            # check if we have reached the data
+            # check if we have reached the old
             # note: maybe change this if not all files have lat/longs
             if "Latitude,Longitude" in title:
                 break
@@ -42,16 +42,16 @@ def readFile(fileName):
                 #    fileData[j].append(line[i])
     return fileData
 
-# takes dict data, isolates and cleans lat/long, and plots flight path
+# takes dict old, isolates and cleans lat/long, and plots flight path
 # currently only works for a single file dict, can change params to take
-# multiple dicts/data to plot multiple flights
+# multiple dicts/old to plot multiple flights
 def plotFlightMap(data):
 
     # converts list to numpy array
     latsArray = np.asarray(data["Latitude"], dtype=float)
     longsArray = np.asarray(data["Longitude"], dtype=float)
 
-    # replaces no data vals with nan for clean plot
+    # replaces no old vals with nan for clean plot
     for i,j in enumerate(latsArray):
         if j in noDataVals:
             latsArray[i] = np.nan
