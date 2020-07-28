@@ -13,13 +13,17 @@ Also contains plotFlightMap function to create a graph of flights, will either a
 analysis methods for visualization later, or move to a different file for only those methods
 """
 
+# TODO: Use WsAbs365WC + WsAbs365MC as output
+
 rootDir = 'D:/SARP/SARP-Aerosol-ML-BrC/Data/'
 rawPath = rootDir + 'Raw/SAGAMERGE/'
 cleanPath = rootDir + 'Cleaned/'
-savePath = rootDir + 'Processed/'
+procPath = rootDir + 'Processed/'
 networkPath = rootDir + 'Network/'
 
-"""creates a dictionary of data from a file"""
+noDataVals = [-9999, -8888, -7777, -99999, -88888, -77777, -999999, -888888, -777777]
+
+"""creates a dictionary of data from a file -- See Jesse Bausell's lessons for inspiration"""
 def readFile(fileIn):
     lineNo = 0
     try:
@@ -94,10 +98,9 @@ def cleanSave(path):
     dfList = []
 
     for merge in mergeList:
-        dfList.append(loadAuth(path+ merge + '/'))
+        dfList.append(loadAuth(path + merge + '/'))
 
     dictNum = 0
-    noDataVals = [-9999, -8888, -7777, -99999, -88888, -77777, -999999, -888888, -777777]
 
     for df in dfList:
         tempDF = df.mask(df.isin(noDataVals), np.nan)
@@ -121,9 +124,6 @@ def combineDF(dfList):
 
 """takes dict data, isolates and cleans lat/long, and plots flight path"""
 def plotFlightMap(dataList):
-
-    # values indicating no data
-    noDataVals = [-9999, -8888, -7777]
 
     # meta list of lats/longs of different flights
     lats = []
@@ -176,11 +176,18 @@ def angstromExponentAbs(df):
             cols[0] = output
         elif upperLambda in output:
             cols[1] = output
+
     goalDF = df[cols].copy()
 
     denom = -np.log(320 / 420)
 
-    goalDF["AEA"] = goalDF.apply(lambda x: (np.log(x[0] / x[1]) / denom), axis=1)
+    def aeaRetrieve(row):
+        if (row[0] <= 0) ^ (row[1] <= 0):
+            row[0] = row[0]*(-1)
+
+        return np.log(row[0] / row[1]) / denom
+
+    goalDF['AEA'] = goalDF.apply(lambda x: aeaRetrieve(x), axis=1)
 
     goalDF['AEA'] = goalDF['AEA'].fillna(goalDF['AEA'].median())
 
@@ -191,20 +198,28 @@ def angstromExponentAbs(df):
 Finalizes input and output data for training and testing by filling NaN values, removing columns
 that have no values, and excluding certain columns based on content
 """
-inputHeaders = []
-outputHeaders = []
 def finalDataProcess(dfDir):
 
     dfList = os.listdir(dfDir)
     dataSet = combineDF(dfList)
 
+    # List of columns to be included in final input/output data
+    inputHeaders = []
+    outputHeaders = []
 
     for header in dataSet:
+
+        # no duplicates
         if header not in inputHeaders and header not in outputHeaders:
+
+            # FIREXAQ 2019 MERGE data - WEBER has BrC goal measruements
             if "WEBER" in header:
                 outputHeaders.append(header)
             else:
-                if "YANG" not in header and "Unnamed" not in header:
+
+                # YANG contains largely positional data, exceptions in the elif, drop extra index col
+                # and drop time ***may change this***
+                if "YANG" not in header and "Unnamed" not in header and "Time" not in header:
                     inputHeaders.append(header)
                 elif "Relative_Humidity" in header or "Solar_Zenith_Angle" in header:
                     inputHeaders.append(header)
@@ -216,17 +231,22 @@ def finalDataProcess(dfDir):
         elif dataSet[inpuT].isna().any():
             dataSet[inpuT] = dataSet[inpuT].fillna(dataSet[inpuT].median())
 
-    dataSet.drop(columns=naList)
-
     for inpuT in naList:
         inputHeaders.remove(inpuT)
 
     for output in outputHeaders:
         dataSet[output] = dataSet[output].fillna(dataSet[output].median())
 
-    outPutSet = angstromExponentAbs(dataSet)
-    dataSet.to_csv(savePath + "input")
-    outPutSet.to_csv(savePath + "output")
 
-def getInputHeaders():
-    return inputHeaders
+    x = dataSet.dropna(axis=1)
+
+    outPutSet = angstromExponentAbs(dataSet).to_frame()
+
+    x = x[inputHeaders].drop(['Fractional_Day'], axis=1)
+    y = outPutSet['AEA']
+
+    x.to_csv(procPath + "input")
+    y.to_csv(procPath + "output")
+
+#cleanSave(rawPath)
+#finalDataProcess(cleanPath)
