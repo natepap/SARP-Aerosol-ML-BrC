@@ -33,9 +33,7 @@ def readFile(fileIn):
                 title = file.readline()
 
                 # list of some column headers
-                titleSigns = ["Time_Start", "Time_start", "Time_mid", "Time_Mid", "Time_End", "Day_Of_Year",
-                              "ext_dry_664", "nCPSPD_stdPT", "InletTemp_K", "nLAScold_stdPT", "nLAShot_stdPT",
-                              "totSC450_stdPT", "TD_on"]
+                titleSigns = ["Time_Start", "Time_End", "Day_Of_Year", "Fractional_Day"]
 
                 # only the title will have at least two of the headers above
                 # so we check if the line has at least two headers
@@ -109,16 +107,14 @@ def cleanSave(path):
 
 """
 Takes multiple dataframes created from file groups and combines them into
-a single dataframe with the start time of the sample as the index
+a single dataframe
 """
 def combineDF(dfList):
     tempDF = []
     for dF in dfList:
         df = pd.read_csv(cleanPath + dF)
         tempDF.append(df)
-    df = pd.concat(tempDF)
-    df = df.set_index("Time_Start")
-    df.sort_index(axis=1)
+    df = pd.concat(tempDF, ignore_index=True)
     return df
 
 
@@ -164,34 +160,22 @@ def plotFlightMap(dataList):
 
 
 """
-Takes absorption measurement data and retrieves the Angstrom Exponent of Absorption
-for each time index and generates a column dataframe
+Takes absorption measurement data and retrieves the particle light absorption (bAP-BrC)
+for each corresponding time index and generates a column dataframe
 """
-def angstromExponentAbs(df):
-    lowerLambda = "WSAbs320_Aero"
-    upperLambda = "WSAbs420_Aero"
-    cols = ["", ""]
+def particleLightAbs(df):
+    waterS = "WSAbs365"
+    methanolS = "MSAbs365"
+    cols = []
     for output in df:
-        if lowerLambda in output:
-            cols[0] = output
-        elif upperLambda in output:
-            cols[1] = output
+        if (waterS in output or methanolS in output) and 'Aero' in output:
+            cols.append(output)
 
     goalDF = df[cols].copy()
 
-    denom = -np.log(320 / 420)
+    goalDF['bAP'] = goalDF.sum(axis=1)
 
-    def aeaRetrieve(row):
-        if (row[0] <= 0) ^ (row[1] <= 0):
-            row[0] = row[0]*(-1)
-
-        return np.log(row[0] / row[1]) / denom
-
-    goalDF['AEA'] = goalDF.apply(lambda x: aeaRetrieve(x), axis=1)
-
-    goalDF['AEA'] = goalDF['AEA'].fillna(goalDF['AEA'].median())
-
-    return goalDF['AEA']
+    return goalDF
 
 
 """
@@ -219,9 +203,10 @@ def finalDataProcess(dfDir):
 
                 # YANG contains largely positional data, exceptions in the elif, drop extra index col
                 # and drop time ***may change this***
-                if "YANG" not in header and "Unnamed" not in header and "Time" not in header:
+                if "YANG" not in header and "Unnamed" not in header and "Time" not in header and\
+                        "Fractional_Day" not in header:
                     inputHeaders.append(header)
-                elif "Relative_Humidity" in header or "Solar_Zenith_Angle" in header:
+                elif "Relative_Humidity" in header:
                     inputHeaders.append(header)
 
     naList = []
@@ -240,13 +225,16 @@ def finalDataProcess(dfDir):
 
     x = dataSet.dropna(axis=1)
 
-    outPutSet = angstromExponentAbs(dataSet).to_frame()
+    outPutSet = particleLightAbs(dataSet)
 
-    x = x[inputHeaders].drop(['Fractional_Day'], axis=1)
-    y = outPutSet['AEA']
+    x = x[inputHeaders]
+    y = outPutSet['bAP']
+    yAll = outPutSet
 
-    x.to_csv(procPath + "input")
-    y.to_csv(procPath + "output")
+    x.to_csv(procPath + "input", index=False)
+    y.to_csv(procPath + "output", index=False)
+    yAll.to_csv(procPath + "calcOutput", index=False)
+
 
 #cleanSave(rawPath)
-#finalDataProcess(cleanPath)
+finalDataProcess(cleanPath)
