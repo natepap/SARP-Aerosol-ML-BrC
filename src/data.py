@@ -5,25 +5,46 @@ import cartopy.crs as ccrs
 import pandas as pd
 
 """
+v1_SARP
+
 This file contains all functions for data preprocessing
 In order to take .ict or .csv files from NASA FIREX-AQ MERGE Data and process it,
 cleanSave(rawPath) >>> finalDataProcess(cleanPath)
 
 Also contains plotFlightMap function to create a graph of flights, will either add more data
 analysis methods for visualization later, or move to a different file for only those methods
+
+Title Flags: ["Time_Start", "Time_End", "Day_Of_Year", "Fractional_Day"]
+
+Removes: YANG - meteorological, Unnamed - index?, Fractional_Day - disruptive data + not useful, Time - ?
 """
 
-# TODO: Use WsAbs365WC + WsAbs365MC as output
+"""
+v2_thesis
+10/2/2020
+
+goals: reorganize data pipeline to exclude duplicate data, look at NaN handling and data exclusion, and
+do more EDA, redownload data from NASA LaRC site https://www-air.larc.nasa.gov/missions.htm with different
+parameters
+
+*Redownloaded data from NASA LaRC: All PIs (check w Roya/Andreas about this but also train a model with
+    everything included as a baseline)
+    
+*
+"""
 
 rootDir = 'D:/SARP/SARP-Aerosol-ML-BrC/Data/'
 rawPath = rootDir + 'Raw/SAGAMERGE/'
+dataPath = rootDir +'FIREX-AQ_5s/'
 cleanPath = rootDir + 'Cleaned/'
 procPath = rootDir + 'Processed/'
 networkPath = rootDir + 'Network/'
 
 noDataVals = [-9999, -8888, -7777, -99999, -88888, -77777, -999999, -888888, -777777]
 
-"""creates a dictionary of data from a file -- See Jesse Bausell's lessons for inspiration"""
+"""creates a dictionary of data from a file -- See Jesse Bausell's lessons for template"""
+
+'''
 def readFile(fileIn):
     lineNo = 0
     try:
@@ -42,8 +63,8 @@ def readFile(fileIn):
                     notFoundTitle = False
 
             title = title.strip().split(",")
-            for i,t in enumerate(title):
-                title[i]=t.strip()
+            for i, t in enumerate(title):
+                title[i] = t.strip()
             fileData = {}
             for i in title:
                 fileData[i] = []
@@ -57,11 +78,60 @@ def readFile(fileIn):
         print("Error opening file:", fileIn, err)
     except IndexError as err:
         print("Index error:", fileIn, err)
+'''
+
+
+
+
+
+'''
+***UPDATED .ict to .csv DataFrame pipeline***
+
+Reads data from multiple .ict files and saves to 'foldername.csv' to easily be converted to a
+dataframe directly with pandas method read_csv()
+'''
+
+
+def collect(folderName):
+    fileList = os.listdir(dataPath+folderName)
+    dataDF = pd.DataFrame()
+    titleList = ['Time_Start', 'Time_Stop', 'Day_Of_Year', 'Day_Of_Year_stdev', 'Day_Of_Year_points',
+                 'Latitude']
+
+
+    for file in fileList:
+        if '.ict' in file:
+            try:
+                with open(dataPath+folderName+file, newline="") as data:
+                    FoundData = False
+
+
+                    while not FoundData:
+                        line = data.readline()
+                        lineSkip = 0
+
+                        lineFilter = list(filter(lambda x: x in line, titleList))
+
+                        if len(lineFilter) == len(titleList):
+                            FoundData = True
+                            break
+                        
+                        lineSkip += 1
+
+                    if FoundData:
+                        dataDF = pd.read_csv(dataPath+folderName+file, skiprows=lineSkip)
+
+            except OSError as err:
+                print("Error opening file:", file, err)
+
+
 
 
 """
 Reads and loads all the files in a directory into a single dataframe
 """
+
+
 def loadAuth(filePath):
     rawList = os.listdir(filePath)
     readPD = pd.DataFrame()
@@ -89,8 +159,9 @@ This method takes the dataframes created from the .ict files and saves them
 as .csv files containing data points and column headers, as well as replaces
 no data vals with nan
 """
-def cleanSave(path):
 
+
+def cleanSave(path):
     mergeList = os.listdir(path)
 
     dfList = []
@@ -102,13 +173,16 @@ def cleanSave(path):
 
     for df in dfList:
         tempDF = df.mask(df.isin(noDataVals), np.nan)
-        tempDF.to_csv(cleanPath+"dataFrame"+str(dictNum))
-        dictNum+=1
+        tempDF.to_csv(cleanPath + "dataFrame" + str(dictNum))
+        dictNum += 1
+
 
 """
 Takes multiple dataframes created from file groups and combines them into
 a single dataframe
 """
+
+
 def combineDF(dfList):
     tempDF = []
     for dF in dfList:
@@ -119,8 +193,9 @@ def combineDF(dfList):
 
 
 """takes dict data, isolates and cleans lat/long, and plots flight path"""
-def plotFlightMap(dataList):
 
+
+def plotFlightMap(dataList):
     # meta list of lats/longs of different flights
     lats = []
     longs = []
@@ -145,7 +220,7 @@ def plotFlightMap(dataList):
         longs.append(longsArray)
 
     # plot size and map type (easiest map to implement, no need for excessive accuracy)
-    ppl.figure(figsize=(12,7))
+    ppl.figure(figsize=(12, 7))
     ax = ppl.axes(projection=ccrs.PlateCarree())
 
     # plot individual flights on the same graph
@@ -159,11 +234,67 @@ def plotFlightMap(dataList):
     ppl.show()
 
 
+'''
+Retrieves Angstrom Exponent based on water-soluble & methanol soluble 
+absorption at 320 and 420 nm
+'''
+
+
+# TODO: make label flags direct copies of title strings
+def angstromExponentAbs(df):
+    # need to sum across water+methanol soluble absorption
+    lowerLambdaW = 'WSAbs320'
+    lowerLambdaM = 'MSAbs320'
+    upperLambdaW = 'WSAbs420'
+    upperLambdaM = 'MSAbs420'
+
+    # copy the full name to a list
+    cols = ["", "", "", ""]
+    for output in df:
+        if lowerLambdaW in output:
+            cols[0] = output
+        elif lowerLambdaM in output:
+            cols[1] = output
+        elif upperLambdaW in output:
+            cols[2] = output
+        elif upperLambdaM in output:
+            cols[3] = output
+
+    # copy relevant columns to a new dataframe
+    tempDF = df[cols].copy()
+
+    # remove negative terms and avoid dividing by zero for log/division
+    # (0.001 is small enough that the calculated result will go to)
+    tempDF = tempDF.mask(tempDF < 0, 0.0001)
+
+    # sum water+methanol
+    sum_320 = tempDF[cols[0]] + tempDF[cols[1]]
+    sum_420 = tempDF[cols[2]] + tempDF[cols[3]]
+
+    # new dataframe
+    data = [sum_320, sum_420]
+    goalDF = pd.DataFrame(data).transpose()
+
+    # AAE = -log(absorb_1/absorb_2)/log(lambda_1/lambda_2)
+    denom = -np.log(320 / 420)
+
+    goalDF['AAE'] = goalDF.apply(lambda x: (np.log(x[0] / x[1]) / denom), axis=1)
+
+    goalDF['AAE'] = goalDF['AAE'].fillna(goalDF['AAE'].median())
+
+    return goalDF['AAE']
+
+
 """
 Takes absorption measurement data and retrieves the particle light absorption (bAP-BrC)
 for each corresponding time index and generates a column dataframe
 """
+
+
+# TODO: make label flags direct copies of title strings
 def particleLightAbs(df):
+    # BrC is best categorized at 365 nm (not enough mist chamber data so we stick
+    # to Aero (filter)
     waterS = "WSAbs365"
     methanolS = "MSAbs365"
     cols = []
@@ -182,8 +313,10 @@ def particleLightAbs(df):
 Finalizes input and output data for training and testing by filling NaN values, removing columns
 that have no values, and excluding certain columns based on content
 """
-def finalDataProcess(dfDir):
 
+
+# TODO: make label flags direct copies of title strings
+def finalDataProcess(dfDir):
     dfList = os.listdir(dfDir)
     dataSet = combineDF(dfList)
 
@@ -202,17 +335,21 @@ def finalDataProcess(dfDir):
             else:
 
                 # YANG contains largely positional data, exceptions in the elif, drop extra index col
-                # and drop time ***may change this***
-                if "YANG" not in header and "Unnamed" not in header and "Time" not in header and\
+                # and drop time
+                if "YANG" not in header and "Unnamed" not in header and "Time" not in header and \
                         "Fractional_Day" not in header:
                     inputHeaders.append(header)
                 elif "Relative_Humidity" in header:
                     inputHeaders.append(header)
 
+    # list all columns that have no data whatsoever
+    # to be dropped all at once
     naList = []
     for inpuT in inputHeaders:
         if dataSet[inpuT].isna().all():
             naList.append(inpuT)
+
+        # fill nan values with median
         elif dataSet[inpuT].isna().any():
             dataSet[inpuT] = dataSet[inpuT].fillna(dataSet[inpuT].median())
 
@@ -222,19 +359,19 @@ def finalDataProcess(dfDir):
     for output in outputHeaders:
         dataSet[output] = dataSet[output].fillna(dataSet[output].median())
 
-
+    # if there are any nan values left for some reason, drop the datapoint with them
     x = dataSet.dropna(axis=1)
 
-    outPutSet = particleLightAbs(dataSet)
+    outPutSetB = particleLightAbs(dataSet)
+    outPutSetA = angstromExponentAbs(dataSet)
 
     x = x[inputHeaders]
-    y = outPutSet['bAP']
-    yAll = outPutSet
+    yB = outPutSetB['bAP']
+    yA = outPutSetA
 
     x.to_csv(procPath + "input", index=False)
-    y.to_csv(procPath + "output", index=False)
-    yAll.to_csv(procPath + "calcOutput", index=False)
+    yB.to_csv(procPath + "bap", index=False)
+    yA.to_csv(procPath + "AAE", index=False)
 
-
-#cleanSave(rawPath)
-finalDataProcess(cleanPath)
+# cleanSave(rawPath)
+# finalDataProcess(cleanPath)
