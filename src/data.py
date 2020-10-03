@@ -1,7 +1,7 @@
 import numpy as np
 import os
 import matplotlib.pyplot as ppl
-import cartopy.crs as ccrs
+#import cartopy.crs as ccrs
 import pandas as pd
 
 """
@@ -23,9 +23,11 @@ Removes: YANG - meteorological, Unnamed - index?, Fractional_Day - disruptive da
 v2_thesis
 10/2/2020
 
-goals: reorganize data pipeline to exclude duplicate data, look at NaN handling and data exclusion, and
+Goals: reorganize data pipeline to exclude duplicate data, look at NaN handling and data exclusion, and
 do more EDA, redownload data from NASA LaRC site https://www-air.larc.nasa.gov/missions.htm with different
 parameters
+
+**note: cartopy setup requires GEOS, which is a pain to install, look for alt dependency
 
 *Redownloaded data from NASA LaRC: All PIs (check w Roya/Andreas about this but also train a model with
     everything included as a baseline)
@@ -35,7 +37,8 @@ parameters
 
 rootDir = 'D:/SARP/SARP-Aerosol-ML-BrC/Data/'
 rawPath = rootDir + 'Raw/SAGAMERGE/'
-dataPath = rootDir +'FIREX-AQ_5s/'
+dataPath = rootDir + 'FIREX-AQ_5s/'
+rawDFsPath = rootDir + 'Raw_DFs'
 cleanPath = rootDir + 'Cleaned/'
 procPath = rootDir + 'Processed/'
 networkPath = rootDir + 'Network/'
@@ -44,7 +47,8 @@ noDataVals = [-9999, -8888, -7777, -99999, -88888, -77777, -999999, -888888, -77
 
 """creates a dictionary of data from a file -- See Jesse Bausell's lessons for template"""
 
-'''
+''' Depreciated '''
+
 def readFile(fileIn):
     lineNo = 0
     try:
@@ -78,8 +82,6 @@ def readFile(fileIn):
         print("Error opening file:", fileIn, err)
     except IndexError as err:
         print("Index error:", fileIn, err)
-'''
-
 
 
 
@@ -93,38 +95,38 @@ dataframe directly with pandas method read_csv()
 
 
 def collect(folderName):
-    fileList = os.listdir(dataPath+folderName)
+    fileList = os.listdir(dataPath + folderName)
     dataDF = pd.DataFrame()
     titleList = ['Time_Start', 'Time_Stop', 'Day_Of_Year', 'Day_Of_Year_stdev', 'Day_Of_Year_points',
                  'Latitude']
 
-
     for file in fileList:
         if '.ict' in file:
             try:
-                with open(dataPath+folderName+file, newline="") as data:
+                with open(dataPath + folderName + file, newline="") as data:
                     FoundData = False
 
-
-                    while not FoundData:
+                    for line in data:
                         line = data.readline()
                         lineSkip = 0
 
+                        # creates a list of strings in the line that match titleList
                         lineFilter = list(filter(lambda x: x in line, titleList))
 
+                        # we found the title if our list matches titleList
                         if len(lineFilter) == len(titleList):
                             FoundData = True
                             break
-                        
+
                         lineSkip += 1
 
                     if FoundData:
-                        dataDF = pd.read_csv(dataPath+folderName+file, skiprows=lineSkip)
+                        dataDF.append(pd.read_csv(dataPath + folderName + file, skiprows=lineSkip))
 
             except OSError as err:
                 print("Error opening file:", file, err)
 
-
+    dataDF.to_csv(rawDFsPath + folderName + 'DF')
 
 
 """
